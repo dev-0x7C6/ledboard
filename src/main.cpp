@@ -7,6 +7,7 @@
 #include "hal/ws2812b.hpp"
 
 constexpr auto led_count = 768;
+constexpr auto led_type = ws_type::ws2812b;
 
 int main ()
 {
@@ -22,13 +23,19 @@ int main ()
 		for (u16 i = 0; i < sizeof(data)/3;)
 		{
 			static_assert(sizeof(data) % 3 == 0);
-			data[i++] = animation.g();
-			data[i++] = animation.r();
-			data[i++] = animation.b();
+			if constexpr (ws.palette() == palette::gbr) {
+				data[i++] = animation.g();
+				data[i++] = animation.r();
+				data[i++] = animation.b();
+			} else {
+				data[i++] = animation.r();
+				data[i++] = animation.g();
+				data[i++] = animation.b();
+			}
 		}
-		
-		ws.write<ws_type::ws2812b>(data, sizeof(data));
-		
+
+		ws.write(data, sizeof(data));
+
 		animation.step();
 		_delay_ms(100);
 	}

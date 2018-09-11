@@ -8,7 +8,7 @@ enum class architecture {
 	undefined,
 };
 
-template<auto arch>
+template <auto arch>
 concept bool compatible_with_arch() {
 #ifdef __AVR__
 	return architecture::avr == arch;
@@ -20,42 +20,35 @@ concept bool compatible_with_arch() {
 }
 
 template <auto cycles>
-requires compatible_with_arch<architecture::avr>()
-void nop_section() {
-	asm volatile (
+requires compatible_with_arch<architecture::avr>() void nop_section() {
+	asm volatile(
 		".rept %[cycles] \n\t"
 		"nop \n\t"
-		".endr \n\t"
-		::                
-		[cycles]	"I" (cycles)
-	);
+		".endr \n\t" ::
+			[cycles] "I"(cycles));
 }
 
 template <auto cycles>
-requires compatible_with_arch<architecture::arm>()
-void nop_section() {
-	asm volatile (
+requires compatible_with_arch<architecture::arm>() void nop_section() {
+	asm volatile(
 		".rept %[cycles] \n\t"
 		"nop \n\t"
-		".endr \n\t"
-		::                
-		[cycles]	"I" (cycles)
-	);
+		".endr \n\t" ::
+			[cycles] "I"(cycles));
 }
 
 template <auto cycles>
-requires compatible_with_arch<architecture::undefined>()
-void __avr_generate_nop_section() {
+requires compatible_with_arch<architecture::undefined>() void __avr_generate_nop_section() {
 }
 
 template <auto addr, auto bit, port_access_strategy strategy, template <auto, auto, port_access_strategy> class port_type_template = port>
-class pwm
-{
+class pwm {
 	using port_type = port<addr, bit, strategy>;
-	
+
 public:
-	pwm(port_type &port) : m_port(port) {};
-	
+	pwm(port_type &port)
+			: m_port(port){};
+
 	template <auto hi_cycles, auto lo_cycles>
 	void generate() {
 		m_port.template hi();
@@ -63,9 +56,9 @@ public:
 		m_port.template lo();
 		nop_section<lo_cycles>();
 	}
-	
-	port_type& port_() { return m_port; }
-	
+
+	port_type &port_() { return m_port; }
+
 private:
 	port_type &m_port;
 };

@@ -9,13 +9,11 @@
  * in short period of time. I think it's better than hardcoded values anyway.
  */
 
-constexpr uint16_t extract_addr_from_expresion(const char* r)
-{
+constexpr uint16_t extract_addr_from_expresion(const char *r) {
 	while (*r != 'x') r++;
 	r++;
 	uint16_t val = 0;
-	while (*r != ')')
-	{
+	while (*r != ')') {
 		val = 16 * val + ((*r <= '9') ? (*r - '0') : ((*r & 0xdf) - 'A' + 10));
 		r++;
 	}
@@ -26,7 +24,7 @@ constexpr uint16_t extract_addr_from_expresion(const char* r)
 #define EXTRACT_ADDR(X) VAL_EXTRACT_ADDR_FROM_EXPRESION(X)
 
 namespace regs {
-	using word_size = u16;
-	constexpr word_size ddr_d = EXTRACT_ADDR(DDRD);
-	constexpr word_size portd = EXTRACT_ADDR(PORTD);
+using word_size = u16;
+constexpr word_size ddr_d = EXTRACT_ADDR(DDRD);
+constexpr word_size portd = EXTRACT_ADDR(PORTD);
 }

@@ -8,16 +8,17 @@ class rainbow_animation {
 		from_green_to_blue,
 		from_blue_to_red,
 	};
+
 public:
 	constexpr auto r() const noexcept { return m_r; }
 	constexpr auto g() const noexcept { return m_g; }
 	constexpr auto b() const noexcept { return m_b; }
-	
+
 	constexpr void step() {
 		if (m_state == rainbow_transition::from_red_to_green) {
 			m_r--;
 			m_g++;
-			
+
 			if (m_g == 0xff) {
 				m_state = rainbow_transition::from_green_to_blue;
 				m_r = 0;
@@ -25,11 +26,11 @@ public:
 				return;
 			}
 		}
-		
+
 		if (m_state == rainbow_transition::from_green_to_blue) {
 			m_b++;
 			m_g--;
-			
+
 			if (m_b == 0xff) {
 				m_state = rainbow_transition::from_blue_to_red;
 				m_g = 0;
@@ -37,11 +38,11 @@ public:
 				return;
 			}
 		}
-		
+
 		if (m_state == rainbow_transition::from_blue_to_red) {
 			m_b--;
 			m_r++;
-			
+
 			if (m_r == 0xff) {
 				m_state = rainbow_transition::from_red_to_green;
 				m_b = 0;
@@ -49,11 +50,11 @@ public:
 				return;
 			}
 		}
-		
+
 		if (m_state == rainbow_transition::from_blue_to_red) {
 			m_b--;
 			m_r++;
-			
+
 			if (m_r == 0xff) {
 				m_state = rainbow_transition::from_red_to_green;
 				m_b = 0;
@@ -62,7 +63,7 @@ public:
 			}
 		}
 	}
-	
+
 private:
 	rainbow_transition m_state{rainbow_transition::from_red_to_green};
 	u8 m_r{0xff};

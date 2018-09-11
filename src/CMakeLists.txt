@@ -8,7 +8,7 @@ add_avr_executable(
    main.cpp
    hal/port.hpp
    hal/pwm.hpp
-   hal/types.hpp
+   types.hpp
    hal/ws2812b.hpp
    hal/traits.hpp
    animation/rainbow_animation.hpp
