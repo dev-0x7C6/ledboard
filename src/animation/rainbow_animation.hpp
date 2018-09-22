@@ -2,6 +2,12 @@
 
 #include "types.hpp"
 
+struct rgb {
+	u8 r;
+	u8 g;
+	u8 b;
+};
+
 class rainbow_animation {
 	enum class rainbow_transition {
 		from_red_to_green,
@@ -13,6 +19,14 @@ public:
 	constexpr auto r() const noexcept { return m_r; }
 	constexpr auto g() const noexcept { return m_g; }
 	constexpr auto b() const noexcept { return m_b; }
+	constexpr auto value() const noexcept {
+		return rgb{m_r, m_g, m_b};
+	}
+	
+	constexpr void steps(int count) noexcept {
+		for (int i = 0; i < count; ++i)
+			step();
+	}
 
 	constexpr void step() {
 		if (m_state == rainbow_transition::from_red_to_green) {
@@ -35,18 +49,6 @@ public:
 				m_state = rainbow_transition::from_blue_to_red;
 				m_g = 0;
 				m_r = 0;
-				return;
-			}
-		}
-
-		if (m_state == rainbow_transition::from_blue_to_red) {
-			m_b--;
-			m_r++;
-
-			if (m_r == 0xff) {
-				m_state = rainbow_transition::from_red_to_green;
-				m_b = 0;
-				m_g = 0;
 				return;
 			}
 		}

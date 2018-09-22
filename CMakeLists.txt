@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.9)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+#set(CMAKE_CXX_STANDARD 17)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 set(AVR_UPLOADTOOL avrdude)
@@ -78,7 +78,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 add_definitions("-DF_CPU=${MCU_SPEED}")
-add_definitions("-fconcepts -fdevirtualize-speculatively -fdevirtualize-at-ltrans -flto")
+add_definitions("-fconcepts -fdevirtualize-speculatively -fdevirtualize-at-ltrans -std=c++2a")
 add_definitions("-fshort-enums")
 add_definitions("-Wall")
 add_definitions("-Werror")
