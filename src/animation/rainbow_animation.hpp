@@ -17,7 +17,7 @@ public:
 	constexpr auto value() const noexcept {
 		return rgb{m_r, m_g, m_b};
 	}
-	
+
 	constexpr void steps(int count) noexcept {
 		for (int i = 0; i < count; ++i)
 			step();

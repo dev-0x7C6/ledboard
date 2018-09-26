@@ -13,7 +13,7 @@ constexpr auto led_count = 38;
 constexpr auto led_type = ws_type::ws2812b;
 
 int main() {
-	color_array<led_count*3> data {};
+	color_array<led_count * 3> data{};
 
 	port<regs::ddr_d, 5>::hi();
 	port<regs::portd, 5> ws_port;
@@ -24,7 +24,7 @@ int main() {
 
 	for (;;) {
 		animator.rotate(5);
-		ws.write(reinterpret_cast<color*>(data.data()), sizeof(data));
+		ws.write(data);
 		_delay_ms(20);
 	}
 

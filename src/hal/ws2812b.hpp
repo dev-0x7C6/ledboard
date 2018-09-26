@@ -45,6 +45,8 @@ constexpr auto get_ws_palette(ws_type value) noexcept {
 	}
 }
 
+#include <array.h>
+
 template <auto addr, auto bit, port_access_strategy strategy, ws_type driver = ws_type::ws2812, template <auto, auto, port_access_strategy> class pwm_type_template = pwm>
 class ws2812 {
 	using pwm_type = pwm_type_template<addr, bit, strategy>;
@@ -53,16 +55,13 @@ public:
 	ws2812(pwm_type &pwm)
 			: m_pwm(pwm) {}
 
-	void write(u8 *begin, int size) {
-		const u8 *end = begin + size;
-
-		while (begin != end) {
-			u8 color = *begin;
+	template <auto size>
+	void write(const color_array<size> &colors) {
+		for (auto color : colors) {
 			for (u8 i = 0; i < 8; ++i) {
 				write(color & (1 << 7));
 				color <<= 1;
 			}
-			begin++;
 		}
 
 		m_pwm.template port_().lo();
