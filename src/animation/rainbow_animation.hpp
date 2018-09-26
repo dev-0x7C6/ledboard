@@ -1,12 +1,7 @@
 #pragma once
 
 #include "types.hpp"
-
-struct rgb {
-	u8 r;
-	u8 g;
-	u8 b;
-};
+#include <animation/animation.hpp>
 
 class rainbow_animation {
 	enum class rainbow_transition {

@@ -3,19 +3,11 @@
 #include "cpu/speed.h"
 #include "traits.hpp"
 #include "pwm.hpp"
+#include <palette.hpp>
 
 enum class ws_type {
 	ws2812b,
 	ws2812
-};
-
-enum class palette {
-	rgb,
-	rbg,
-	bgr,
-	brg,
-	grb,
-	gbr,
 };
 
 class ws_timing_container {
@@ -46,10 +38,10 @@ constexpr auto get_ws_timings(ws_type value) noexcept -> ws_timing_container {
 	return get_ws_timings(ws_type::ws2812b);
 }
 
-constexpr auto get_ws_palette(ws_type value) noexcept -> palette {
+constexpr auto get_ws_palette(ws_type value) noexcept {
 	switch (value) {
-		case ws_type::ws2812b: return palette::grb;
-		case ws_type::ws2812: return palette::rgb;
+		case ws_type::ws2812b: return palette_category::grb;
+		case ws_type::ws2812: return palette_category::rgb;
 	}
 }
 

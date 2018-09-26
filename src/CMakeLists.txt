@@ -1,5 +1,7 @@
 include_directories(
 	${CMAKE_SOURCE_DIR}/src/
+	${CMAKE_SOURCE_DIR}/src/etl/include/etl
+	${CMAKE_SOURCE_DIR}/src/etl/include
     hal
 )
 
@@ -11,6 +13,9 @@ add_avr_executable(
    types.hpp
    hal/ws2812b.hpp
    hal/traits.hpp
+   color.hpp
+   palette.hpp
+   animation/animation.hpp
    animation/rainbow_animation.hpp
 )
 
