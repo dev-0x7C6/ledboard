@@ -10,7 +10,6 @@
 #include <etl/array.h>
 
 constexpr auto led_count = 38;
-constexpr auto led_type = ws_type::ws2812b;
 
 int main() {
 	color_array<led_count * 3> data{};
