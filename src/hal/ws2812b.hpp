@@ -40,8 +40,8 @@ constexpr auto get_ws_timings(ws_type value) noexcept -> ws_timing_container {
 
 constexpr auto get_ws_palette(ws_type value) noexcept {
 	switch (value) {
-		case ws_type::ws2812b: return palette_category::grb;
-		case ws_type::ws2812: return palette_category::rgb;
+		case ws_type::ws2812b: return palette_category::grb888;
+		case ws_type::ws2812: return palette_category::rgb888;
 	}
 }
 

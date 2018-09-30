@@ -25,7 +25,7 @@ public:
 	constexpr void rotate(int count = 1) {
 		for (int i = elements - 1; i > 0; i--)
 			m_colors[i] = m_colors[i - 1];
-		m_colors[0] = animation.value();
+		m_colors[0] = convert_palette<palette_category>(animation.value());
 		steps(count);
 	}
 
