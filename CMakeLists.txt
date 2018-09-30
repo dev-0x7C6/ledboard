@@ -82,6 +82,7 @@ add_definitions("-fconcepts -fdevirtualize-speculatively -fdevirtualize-at-ltran
 add_definitions("-fshort-enums")
 add_definitions("-Wall")
 add_definitions("-Werror")
+add_definitions("-fno-exceptions")
 add_definitions("-pedantic")
 add_definitions("-pedantic-errors")
 add_definitions("-funsigned-char")

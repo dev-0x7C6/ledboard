@@ -6,12 +6,12 @@
 // clang-format off
 
 template<typename type>
-concept bool animation_interface = requires(type a) {
-    { a.value() } -> rgb
-    { a.r() } -> u8
-    { a.g() } -> u8
-    { a.b() } -> u8
-    { a.step() } -> void
+concept bool animation_interface = requires(type object) {
+    { object.value() } -> rgb
+    { object.r() } -> u8
+    { object.g() } -> u8
+    { object.b() } -> u8
+    { object.step() } -> void
 };
 
 // clang-format on
