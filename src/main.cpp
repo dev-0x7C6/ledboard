@@ -11,22 +11,21 @@
 
 constexpr auto led_count = 38;
 
-int main() {
-	color_array<led_count * 3> data{};
-	rgb *colors = reinterpret_cast<rgb *>(data.data());
+color_array<led_count * 3> data{};
 
-	port<regs::ddr_d, 5>::hi();
+void animation_loop(rgb value) {
+	transformation<led_count>::rotate(reinterpret_cast<rgb *>(data.data()), value);
 	port<regs::portd, 5> ws_port;
 	pwm ws_pwm(ws_port);
 	ws2812b ws(ws_pwm);
+	ws.write(data);
+	_delay_ms(10);
+}
 
-	animator<palette_converter_wrapper<rainbow_animation, ws.palette()>, led_count> animator(colors);
-
+int main() {
+	port<regs::ddr_d, 5>::hi();
 	for (;;) {
-		animator.rotate(5);
-		ws.write(data);
-		_delay_ms(20);
+		sequential_animation<animation_loop, palette_converter_wrapper<rainbow_animation<5>, palette_category::grb888>, palette_converter_wrapper<rainbow_animation<10>, palette_category::grb888>, palette_converter_wrapper<rainbow_animation<20>, palette_category::grb888>, palette_converter_wrapper<rainbow_animation<25>, palette_category::grb888>, palette_converter_wrapper<rainbow_animation<30>, palette_category::grb888>, palette_converter_wrapper<rainbow_animation<50>, palette_category::grb888>>();
 	}
-
 	return 0;
 }

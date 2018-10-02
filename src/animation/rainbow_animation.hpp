@@ -3,6 +3,7 @@
 #include "types.hpp"
 #include <animation/animation.hpp>
 
+template <auto steps>
 class rainbow_animation {
 	enum class rainbow_transition {
 		from_red_to_green,
@@ -18,12 +19,17 @@ public:
 		return rgb{m_r, m_g, m_b};
 	}
 
-	constexpr void steps(int count) noexcept {
-		for (int i = 0; i < count; ++i)
-			step();
+	constexpr void step() {
+		for (int i = 0; i < steps; ++i)
+			one_iterration();
 	}
 
-	constexpr void step() {
+	constexpr bool is_finished() const noexcept {
+		return m_cnt > 0x01;
+	}
+
+private:
+	constexpr void one_iterration() {
 		if (m_state == rainbow_transition::from_red_to_green) {
 			m_r--;
 			m_g++;
@@ -32,6 +38,7 @@ public:
 				m_state = rainbow_transition::from_green_to_blue;
 				m_r = 0;
 				m_b = 0;
+				m_cnt++;
 				return;
 			}
 		}
@@ -66,4 +73,5 @@ private:
 	u8 m_r{0xff};
 	u8 m_g{0x00};
 	u8 m_b{0x00};
+	u8 m_cnt{0x00};
 };

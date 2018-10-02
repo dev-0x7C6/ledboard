@@ -12,9 +12,28 @@ concept bool animation_interface = requires(type object) {
     { object.g() } -> u8
     { object.b() } -> u8
     { object.step() } -> void
+    { object.is_finished() } -> bool
 };
 
 // clang-format on
+
+#include <util/delay.h>
+
+template <auto callback, animation_interface animation_type, animation_interface... args>
+void sequential_animation() {
+	{
+		animation_type animation;
+
+		while (!animation.is_finished()) {
+			animation.step();
+			callback(animation.value());
+		}
+	}
+
+	if constexpr (sizeof...(args) > 0) {
+		sequential_animation<callback, args...>();
+	}
+}
 
 template <animation_interface animation_type, palette_category category>
 class palette_converter_wrapper : public animation_type { // eventualy operator. (aka dot) overload
@@ -24,26 +43,12 @@ public:
 	}
 };
 
-template <animation_interface animation_type, auto elements>
-class animator {
+template <auto elements>
+class transformation {
 public:
-	constexpr animator(rgb *c)
-			: m_colors(c) {}
-
-	constexpr void rotate(int count = 1) {
+	constexpr static void rotate(rgb *colors, rgb value) {
 		for (int i = elements - 1; i > 0; i--)
-			m_colors[i] = m_colors[i - 1];
-		m_colors[0] = m_animation.value();
-		steps(count);
+			colors[i] = colors[i - 1];
+		colors[0] = value;
 	}
-
-private:
-	constexpr void steps(int count) noexcept {
-		for (int i = 0; i < count; ++i)
-			m_animation.step();
-	}
-
-private:
-	animation_type m_animation;
-	rgb *m_colors;
 };
