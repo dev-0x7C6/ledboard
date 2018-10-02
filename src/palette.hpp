@@ -21,7 +21,7 @@ concept bool palette_compatible = requires(T a) {
 
 // clang-format on
 
-template <palette_category category, palette_compatible type> // generate efficent signature for every value category
+template <palette_category category, palette_compatible type> // generate efficent signature for every value category, still universal reference :)
 constexpr auto convert_palette(type &&value) noexcept -> rgb {
 	// reflection and 'for...' code injection, probably >=C++23
 	if constexpr (category == palette_category::gbr888)

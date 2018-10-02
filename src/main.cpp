@@ -13,13 +13,14 @@ constexpr auto led_count = 38;
 
 int main() {
 	color_array<led_count * 3> data{};
+	rgb *colors = reinterpret_cast<rgb *>(data.data());
 
 	port<regs::ddr_d, 5>::hi();
 	port<regs::portd, 5> ws_port;
 	pwm ws_pwm(ws_port);
 	ws2812b ws(ws_pwm);
 
-	animator<rainbow_animation, ws.palette(), led_count> animator(reinterpret_cast<rgb *>(data.data()));
+	animator<palette_converter_wrapper<rainbow_animation, ws.palette()>, led_count> animator(colors);
 
 	for (;;) {
 		animator.rotate(5);

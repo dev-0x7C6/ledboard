@@ -24,7 +24,7 @@ public:
 	}
 };
 
-template <animation_interface animation_type, palette_category category, auto elements>
+template <animation_interface animation_type, auto elements>
 class animator {
 public:
 	constexpr animator(rgb *c)
@@ -44,6 +44,6 @@ private:
 	}
 
 private:
-	palette_converter_wrapper<animation_type, category> m_animation;
+	animation_type m_animation;
 	rgb *m_colors;
 };
