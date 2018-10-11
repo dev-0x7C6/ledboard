@@ -17,18 +17,19 @@ concept bool animation_interface = requires(type object) {
 
 // clang-format on
 
-#include <util/delay.h>
+template <auto callback, animation_interface animation_type>
+void run_annimation() {
+	animation_type animation;
+
+	while (!animation.is_finished()) {
+		animation.step();
+		callback(animation.value());
+	}
+}
 
 template <auto callback, animation_interface animation_type, animation_interface... args>
 void sequential_animation() {
-	{
-		animation_type animation;
-
-		while (!animation.is_finished()) {
-			animation.step();
-			callback(animation.value());
-		}
-	}
+	run_annimation<callback, animation_type>();
 
 	if constexpr (sizeof...(args) > 0) {
 		sequential_animation<callback, args...>();
@@ -36,7 +37,7 @@ void sequential_animation() {
 }
 
 template <animation_interface animation_type, palette_category category>
-class palette_converter_wrapper : public animation_type { // eventualy operator. (aka dot) overload
+class palette_converter_wrapper : public animation_type { // eventually operator. (aka dot) overload
 public:
 	constexpr auto value() const noexcept {
 		return convert_palette<category>(animation_type::value());
@@ -50,5 +51,10 @@ public:
 		for (int i = elements - 1; i > 0; i--)
 			colors[i] = colors[i - 1];
 		colors[0] = value;
+	}
+
+	constexpr static void fill(rgb *colors, rgb value) {
+		for (int i = 0; i < elements; ++i)
+			colors[i] = value;
 	}
 };

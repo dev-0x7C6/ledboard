@@ -25,7 +25,7 @@ void animation_loop(rgb value) {
 int main() {
 	port<regs::ddr_d, 5>::hi();
 	for (;;) {
-		sequential_animation<animation_loop, palette_converter_wrapper<rainbow_animation<5>, palette_category::grb888>, palette_converter_wrapper<rainbow_animation<10>, palette_category::grb888>, palette_converter_wrapper<rainbow_animation<20>, palette_category::grb888>, palette_converter_wrapper<rainbow_animation<25>, palette_category::grb888>, palette_converter_wrapper<rainbow_animation<30>, palette_category::grb888>, palette_converter_wrapper<rainbow_animation<50>, palette_category::grb888>>();
+		sequential_animation<animation_loop, palette_converter_wrapper<rainbow_animation<1>, palette_category::grb888>>();
 	}
 	return 0;
 }
