@@ -1,3 +1,6 @@
 [submodule "src/etl"]
 	path = src/etl
 	url = https://github.com/ETLCPP/etl.git
+[submodule "formatter"]
+	path = formatter
+	url = git@github.com:dev-0x7C6/clang-formatter-integration.git
