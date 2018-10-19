@@ -2,6 +2,7 @@ include_directories(
 	${CMAKE_SOURCE_DIR}/src/
 	${CMAKE_SOURCE_DIR}/src/etl/include/etl
 	${CMAKE_SOURCE_DIR}/src/etl/include
+	${CMAKE_SOURCE_DIR}/src/externals/common
     hal
 )
 
@@ -10,7 +11,7 @@ add_avr_executable(
    main.cpp
    hal/port.hpp
    hal/pwm.hpp
-   types.hpp
+   externals/common/types.hpp
    hal/ws2812b.hpp
    hal/traits.hpp
    color.hpp

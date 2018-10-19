@@ -4,3 +4,6 @@
 [submodule "formatter"]
 	path = formatter
 	url = git@github.com:dev-0x7C6/clang-formatter-integration.git
+[submodule "src/externals/common"]
+	path = src/externals/common
+	url = git@github.com:dev-0x7C6/common.git
