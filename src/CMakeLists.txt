@@ -1,7 +1,7 @@
 include_directories(
 	${CMAKE_SOURCE_DIR}/src/
-	${CMAKE_SOURCE_DIR}/src/etl/include/etl
-	${CMAKE_SOURCE_DIR}/src/etl/include
+	${CMAKE_SOURCE_DIR}/src/externals/etl/include/etl
+	${CMAKE_SOURCE_DIR}/src/externals/etl/include
 	${CMAKE_SOURCE_DIR}/src/externals/common
     hal
 )

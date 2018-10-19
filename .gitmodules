@@ -1,5 +1,5 @@
 [submodule "src/etl"]
-	path = src/etl
+	path = src/externals/etl
 	url = https://github.com/ETLCPP/etl.git
 [submodule "formatter"]
 	path = formatter
