@@ -30,6 +30,8 @@ using to_brg888 = convert<animation, palette_category::brg888>;
 
 template <animation_interface animation_type, auto times>
 class repeat {
+	static_assert(times > 0);
+
 public:
 	constexpr auto value() const noexcept {
 		return m_animation.value();
@@ -39,8 +41,7 @@ public:
 		m_animation.step();
 		if (m_animation.is_finished()) {
 			m_finished = (--m_steps) == 0;
-			if (!m_finished)
-				m_animation = decltype(m_animation){};
+			m_animation = decltype(m_animation){};
 		}
 	}
 
@@ -56,10 +57,11 @@ private:
 
 template <animation_interface animation_type, auto steps>
 class speed : public animation_type { // eventually operator. (aka dot) overload
+	static_assert(steps > 0);
+
 public:
 	void step() {
 		for (int i = 0; i < steps; ++i)
-			if (!animation_type::is_finished())
-				animation_type::step();
+			animation_type::step();
 	}
 };

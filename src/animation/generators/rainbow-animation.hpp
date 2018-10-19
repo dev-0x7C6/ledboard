@@ -16,8 +16,7 @@ public:
 	}
 
 	constexpr void step() {
-		if (!is_finished())
-			one_iterration();
+		one_iterration();
 	}
 
 	constexpr bool is_finished() const noexcept {

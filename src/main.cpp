@@ -20,7 +20,7 @@ void animation_loop(rgb value) {
 	pwm ws_pwm(ws_port);
 	ws2812b ws(ws_pwm);
 	ws.write(data);
-	_delay_ms(10);
+	_delay_ms(20);
 }
 
 int main() {
