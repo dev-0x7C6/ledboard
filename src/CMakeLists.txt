@@ -17,7 +17,9 @@ add_avr_executable(
    color.hpp
    palette.hpp
    animation/animation.hpp
-   animation/rainbow_animation.hpp
+   animation/animation-runners.hpp
+   animation/animation-modifiers.hpp
+   animation/generators/rainbow-animation.hpp
 )
 
 target_link_libraries(

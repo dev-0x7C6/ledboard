@@ -2,12 +2,13 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-#include <animation/rainbow_animation.hpp>
+#include <animation/animation-runners.hpp>
+#include <animation/animation-modifiers.hpp>
+#include <animation/generators/rainbow-animation.hpp>
+
 #include <hal/regs.hpp>
 #include <hal/ws2812b.hpp>
 #include <pwm.hpp>
-
-#include <etl/array.h>
 
 constexpr auto led_count = 38;
 
