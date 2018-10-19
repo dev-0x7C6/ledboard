@@ -1,9 +1,8 @@
 #pragma once
 
-#include "types.hpp"
 #include <animation/animation.hpp>
+#include <types.hpp>
 
-template <auto steps>
 class rainbow_animation {
 	enum class rainbow_transition {
 		from_red_to_green,
@@ -12,57 +11,54 @@ class rainbow_animation {
 	};
 
 public:
-	constexpr auto r() const noexcept { return m_r; }
-	constexpr auto g() const noexcept { return m_g; }
-	constexpr auto b() const noexcept { return m_b; }
 	constexpr auto value() const noexcept {
-		return rgb{m_r, m_g, m_b};
+		return m_value;
 	}
 
 	constexpr void step() {
-		for (int i = 0; i < steps; ++i)
+		if (!is_finished())
 			one_iterration();
 	}
 
 	constexpr bool is_finished() const noexcept {
-		return m_cnt > 0x01;
+		return m_finished;
 	}
 
 private:
 	constexpr void one_iterration() {
 		if (m_state == rainbow_transition::from_red_to_green) {
-			m_r--;
-			m_g++;
+			m_value.r--;
+			m_value.g++;
 
-			if (m_g == 0xff) {
+			if (m_value.g == 0xff) {
 				m_state = rainbow_transition::from_green_to_blue;
-				m_r = 0;
-				m_b = 0;
-				m_cnt++;
+				m_value.r = 0;
+				m_value.b = 0;
 				return;
 			}
 		}
 
 		if (m_state == rainbow_transition::from_green_to_blue) {
-			m_b++;
-			m_g--;
+			m_value.b++;
+			m_value.g--;
 
-			if (m_b == 0xff) {
+			if (m_value.b == 0xff) {
 				m_state = rainbow_transition::from_blue_to_red;
-				m_g = 0;
-				m_r = 0;
+				m_value.g = 0;
+				m_value.r = 0;
 				return;
 			}
 		}
 
 		if (m_state == rainbow_transition::from_blue_to_red) {
-			m_b--;
-			m_r++;
+			m_value.b--;
+			m_value.r++;
 
-			if (m_r == 0xff) {
+			if (m_value.r == 0xff) {
 				m_state = rainbow_transition::from_red_to_green;
-				m_b = 0;
-				m_g = 0;
+				m_value.b = 0;
+				m_value.g = 0;
+				m_finished = true;
 				return;
 			}
 		}
@@ -70,8 +66,6 @@ private:
 
 private:
 	rainbow_transition m_state{rainbow_transition::from_red_to_green};
-	u8 m_r{0xff};
-	u8 m_g{0x00};
-	u8 m_b{0x00};
-	u8 m_cnt{0x00};
+	rgb m_value{0xff, 0x00, 0x00};
+	bool m_finished{false};
 };
