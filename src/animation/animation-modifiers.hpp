@@ -2,8 +2,19 @@
 
 #include <animation/animation.hpp>
 
+template <animation_interface animation_type, auto steps>
+class speed : public animation_type {
+	static_assert(steps > 0);
+
+public:
+	constexpr void step() noexcept {
+		for (int i = 0; i < steps; ++i)
+			animation_type::step();
+	}
+};
+
 template <animation_interface animation_type, palette_category category>
-class convert : public animation_type { // eventually operator. (aka dot) overload
+class convert : public animation_type {
 public:
 	constexpr auto value() const noexcept {
 		return convert_palette<category>(animation_type::value());
@@ -37,7 +48,7 @@ public:
 		return m_animation.value();
 	}
 
-	void step() {
+	constexpr void step() noexcept {
 		m_animation.step();
 		if (m_animation.is_finished()) {
 			m_finished = (--m_steps) == 0;
@@ -55,13 +66,3 @@ private:
 	bool m_finished{false};
 };
 
-template <animation_interface animation_type, auto steps>
-class speed : public animation_type { // eventually operator. (aka dot) overload
-	static_assert(steps > 0);
-
-public:
-	void step() {
-		for (int i = 0; i < steps; ++i)
-			animation_type::step();
-	}
-};

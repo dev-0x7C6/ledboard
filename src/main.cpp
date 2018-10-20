@@ -14,6 +14,10 @@ constexpr auto led_count = 38;
 
 color_array<led_count * 3> data{};
 
+void initialize() {
+	port<regs::ddr_d, 5>::hi();
+}
+
 void animation_loop(rgb value) {
 	transformation<led_count>::rotate(reinterpret_cast<rgb *>(data.data()), value);
 	port<regs::portd, 5> ws_port;
@@ -24,12 +28,14 @@ void animation_loop(rgb value) {
 }
 
 int main() {
-	port<regs::ddr_d, 5>::hi();
+	initialize();
+
 	for (;;) {
 		sequential_animation<animation_loop,
 			repeat<speed<to_grb888<rainbow_animation>, 8>, 8>,
 			repeat<speed<to_grb888<rainbow_animation>, 4>, 4>,
 			repeat<speed<to_grb888<rainbow_animation>, 2>, 2>>();
 	}
+
 	return 0;
 }
