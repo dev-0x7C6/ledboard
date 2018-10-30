@@ -5,6 +5,7 @@
 #include <animation/animation-runners.hpp>
 #include <animation/animation-modifiers.hpp>
 #include <animation/generators/rainbow-animation.hpp>
+#include <animation/generators/plain-color-animation.hpp>
 
 #include <hal/regs.hpp>
 #include <hal/ws2812b.hpp>
@@ -32,6 +33,10 @@ int main() {
 
 	for (;;) {
 		sequential_animation<animation_loop,
+			repeat<speed<to_grb888<plain_color_animation<0x00, 0x00, 0xff>>, 8>, 20>,
+			repeat<speed<to_grb888<plain_color_animation<0xff, 0x20, 0x00>>, 8>, 10>,
+			repeat<speed<to_grb888<plain_color_animation<0x00, 0x00, 0xff>>, 8>, 20>,
+			repeat<speed<to_grb888<plain_color_animation<0x00, 0xff, 0x00>>, 8>, 10>,
 			repeat<speed<to_grb888<rainbow_animation>, 8>, 8>,
 			repeat<speed<to_grb888<rainbow_animation>, 4>, 4>,
 			repeat<speed<to_grb888<rainbow_animation>, 2>, 2>>();

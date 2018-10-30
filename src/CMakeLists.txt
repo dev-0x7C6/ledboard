@@ -20,6 +20,7 @@ add_avr_executable(
    animation/animation-runners.hpp
    animation/animation-modifiers.hpp
    animation/generators/rainbow-animation.hpp
+   animation/generators/plain-color-animation.hpp
 )
 
 target_link_libraries(
