@@ -13,11 +13,20 @@ void run_annimation() {
 }
 
 template <auto callback, animation_interface animation_type, animation_interface... args>
-void sequential_animation() {
+constexpr void sequential_animation() noexcept {
 	run_annimation<callback, animation_type>();
 
 	if constexpr (sizeof...(args) > 0) {
 		sequential_animation<callback, args...>();
+	}
+}
+
+template <auto callback, template <animation_interface> class wrapper, animation_interface animation_type, animation_interface... args>
+constexpr void sequential_animation() noexcept {
+	run_annimation<callback, wrapper<animation_type>>();
+
+	if constexpr (sizeof...(args) > 0) {
+		sequential_animation<callback, wrapper, args...>();
 	}
 }
 

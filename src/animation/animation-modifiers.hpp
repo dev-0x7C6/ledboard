@@ -49,6 +49,9 @@ public:
 	}
 
 	constexpr void step() noexcept {
+		if (m_finished)
+			return;
+
 		m_animation.step();
 		if (m_animation.is_finished()) {
 			m_finished = (--m_steps) == 0;
@@ -61,7 +64,7 @@ public:
 	}
 
 private:
-	int m_steps = times;
+	decltype(times) m_steps{times};
 	animation_type m_animation;
 	bool m_finished{false};
 };

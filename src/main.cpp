@@ -32,14 +32,14 @@ int main() {
 	initialize();
 
 	for (;;) {
-		sequential_animation<animation_loop,
-			repeat<speed<to_grb888<plain_color_animation<0x00, 0x00, 0xff>>, 8>, 20>,
-			repeat<speed<to_grb888<plain_color_animation<0xff, 0x20, 0x00>>, 8>, 10>,
-			repeat<speed<to_grb888<plain_color_animation<0x00, 0x00, 0xff>>, 8>, 20>,
-			repeat<speed<to_grb888<plain_color_animation<0x00, 0xff, 0x00>>, 8>, 10>,
-			repeat<speed<to_grb888<rainbow_animation>, 8>, 8>,
-			repeat<speed<to_grb888<rainbow_animation>, 4>, 4>,
-			repeat<speed<to_grb888<rainbow_animation>, 2>, 2>>();
+		sequential_animation<animation_loop, to_grb888,
+			repeat<speed<plain_color_animation<0x00, 0x00, 0xff>, 8>, 20>,
+			repeat<speed<plain_color_animation<0xff, 0x20, 0x00>, 8>, 10>,
+			repeat<speed<plain_color_animation<0x00, 0x00, 0xff>, 8>, 20>,
+			repeat<speed<plain_color_animation<0x00, 0xff, 0x00>, 8>, 10>,
+			repeat<speed<rainbow_animation, 8>, 8>,
+			repeat<speed<rainbow_animation, 4>, 4>,
+			repeat<speed<rainbow_animation, 2>, 2>>();
 	}
 
 	return 0;
