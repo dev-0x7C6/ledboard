@@ -11,7 +11,7 @@
 #include <hal/ws2812b.hpp>
 #include <pwm.hpp>
 
-constexpr auto led_count = 38;
+constexpr auto led_count = 100;
 
 color_array<led_count * 3> data{};
 
@@ -25,21 +25,21 @@ void animation_loop(rgb value) {
 	pwm ws_pwm(ws_port);
 	ws2812b ws(ws_pwm);
 	ws.write(data);
-	_delay_ms(20);
+	_delay_ms(5);
 }
+
+constexpr auto how_fast = 10;
+constexpr auto how_long = 60;
 
 int main() {
 	initialize();
 
 	for (;;) {
 		sequential_animation<animation_loop, to_grb888,
-			repeat<speed<plain_color_animation<0x00, 0x00, 0xff>, 8>, 20>,
-			repeat<speed<plain_color_animation<0xff, 0x20, 0x00>, 8>, 10>,
-			repeat<speed<plain_color_animation<0x00, 0x00, 0xff>, 8>, 20>,
-			repeat<speed<plain_color_animation<0x00, 0xff, 0x00>, 8>, 10>,
-			repeat<speed<rainbow_animation, 8>, 8>,
-			repeat<speed<rainbow_animation, 4>, 4>,
-			repeat<speed<rainbow_animation, 2>, 2>>();
+			repeat<speed<plain_color_animation<0x00, 0x00, 0xff>, how_fast>, how_long>,
+			repeat<speed<plain_color_animation<0xff, 0x20, 0x00>, how_fast>, how_long / 2>,
+			repeat<speed<plain_color_animation<0x00, 0x00, 0xff>, how_fast>, how_long>,
+			repeat<speed<plain_color_animation<0x00, 0xff, 0x00>, how_fast>, how_long / 2>>();
 	}
 
 	return 0;
