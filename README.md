@@ -10,5 +10,5 @@ This is also my playground for testing upcomming C++20 features and develop my m
 
 I'm using this project for driving my skateboard led strip, so skateboard unique features my come in future.
 
-![ledboard](https://devwork.space/wp-content/uploads/2018/11/ledboard.jpg)
+![ledboard](https://devwork.space/wp-content/uploads/2018/11/IMG_20181102_213934.jpg)
 
