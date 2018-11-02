@@ -68,4 +68,3 @@ private:
 	animation_type m_animation;
 	bool m_finished{false};
 };
-
