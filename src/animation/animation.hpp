@@ -3,6 +3,12 @@
 #include <color.hpp>
 #include <palette.hpp>
 
+enum class Infill {
+	RotateLeft,
+	RotateRight,
+	Fill
+};
+
 // clang-format off
 
 template<typename type>
