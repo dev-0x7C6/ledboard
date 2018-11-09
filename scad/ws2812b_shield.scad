@@ -17,13 +17,13 @@ module trapezoid(l, w, h, space) {
 }
 
 module led_shield(l, w, h, space, inner_space) {
+    border = 1;
     difference() {
         trapezoid(l, w, h, space);
-        translate([0, (w+space/2) - (w*0.2 + inner_space/2),0])
-            trapezoid(l, w * 0.2, h * 0.6, inner_space);
+        translate([0, (w+space/2) - (border + inner_space/2),0])
+            trapezoid(l, border, h * 0.5, inner_space);
     }
 }
 
-
    
-led_shield(10, 16.50, 5, 11, 11);
+led_shield(80, 16.50, 6, 11, 11);
