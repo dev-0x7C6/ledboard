@@ -16,14 +16,25 @@ module trapezoid(l, w, h, space) {
     }
 }
 
-module led_shield(l, w, h, space, inner_space) {
+module led_shield(l, w, h, space, inner_space, inner_len = 1.0) {
     border = 1;
     difference() {
         trapezoid(l, w, h, space);
         translate([0, (w+space/2) - (border + inner_space/2),0])
-            trapezoid(l, border, h * 0.5, inner_space);
+            trapezoid(l*inner_len, border, h * 0.5, inner_space);
     }
 }
 
-   
-led_shield(80, 16.50, 6, 11, 11);
+module led_shield_end(l, w, h, space, inner_space) {
+    cut_length = l * 0.5;
+    cut_width = w * 2.0 + space;
+
+    difference() {
+        led_shield(l, w, h, space, inner_space, 0.55);
+        rotate([0, 180, -90])
+            translate([0, cut_length,-h])
+                prism(cut_width, cut_length, h);
+    }
+}
+
+led_shield_end(20, 16.50, 6, 11, 11);
