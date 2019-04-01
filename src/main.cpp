@@ -19,7 +19,7 @@ void initialize() {
 	port<regs::ddr_d, 5>::hi();
 }
 
-void animation_loop(rgb value) {
+void animation_loop(const rgb value) noexcept {
 	transformation<led_count>::rotate(reinterpret_cast<rgb *>(data.data()), value);
 	port<regs::portd, 5> ws_port;
 	pwm ws_pwm(ws_port);

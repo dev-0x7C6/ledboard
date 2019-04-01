@@ -37,4 +37,7 @@ module led_shield_end(l, w, h, space, inner_space) {
     }
 }
 
+translate([-25, 0, 0])
+    led_shield(20, 16.50, 6, 11, 11);
+
 led_shield_end(20, 16.50, 6, 11, 11);
