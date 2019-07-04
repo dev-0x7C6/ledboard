@@ -6,9 +6,12 @@ cmake_minimum_required(VERSION 3.9)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 set(AVR_UPLOADTOOL avrdude)
-set(AVR_PROGRAMMER arduino)
-set(AVR_UPLOADTOOL_PORT /dev/ttyUSB1)
-set(AVR_UPLOADTOOL_OPTIONS "-b 57600")
+set(AVR_PROGRAMMER usbasp)
+set(AVR_UPLOADTOOL_PORT usb)
+#set(AVR_UPLOADTOOL_OPTIONS "-b 57600")
+#set(AVR_PROGRAMMER arduino)
+#set(AVR_UPLOADTOOL_PORT /dev/ttyUSB2)
+
 #set(AVR_UPLOADTOOL_OPTIONS "-b 115200")
 
 set(AVR_MCU atmega328p)
@@ -17,7 +20,7 @@ set(AVR_L_FUSE 0xc3)
 
 include(generic-gcc-avr.cmake)
 
-set(MCU_SPEED "16000000UL")
+set(MCU_SPEED "22118400UL")
 
 project(ledboard)
 
@@ -32,9 +35,6 @@ message(STATUS "Current L_FUSE is set to: ${AVR_L_FUSE}")
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE Release)
 endif(NOT CMAKE_BUILD_TYPE)
-
-
-set(MCU_SPEED "16000000UL")
 
 if(DEFINED ENV{AVR_FIND_ROOT_PATH})
     set(CMAKE_FIND_ROOT_PATH $ENV{AVR_FIND_ROOT_PATH})

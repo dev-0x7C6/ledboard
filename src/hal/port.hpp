@@ -75,15 +75,22 @@ public:
 	}
 };
 
-template <auto addr>
 class uart {
+
 public:
-	u8 recv() const {
+	static u16 recv_16u() noexcept {
+		u16 ret{};
+		ret |= recv_8u() << 8;
+		ret |= recv_8u();
+		return ret;
+	}
+
+	static u8 recv_8u() noexcept {
 		loop_until_bit_is_set(UCSR0A, RXC0);
 		return UDR0;
 	}
 
-	void send(u8 value) {
+	static void send(const u8 value) noexcept {
 		loop_until_bit_is_set(UCSR0A, UDRE0);
 		UDR0 = value;
 	}
