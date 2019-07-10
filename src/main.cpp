@@ -12,6 +12,8 @@
 #include <hal/ws2812b.hpp>
 #include <pwm.hpp>
 
+#include <string.h>
+
 constexpr auto led_count = 100;
 
 color_array<led_count * 3> data{};
@@ -20,17 +22,20 @@ void initialize() {
 	port<regs::ddr_d, 5>::hi();
 }
 
+template <auto delay>
 void push_leds() {
 	port<regs::portd, 5> ws_port;
 	pwm ws_pwm(ws_port);
 	ws2812b ws(ws_pwm);
 	ws.write(data);
-	_delay_ms(30);
+	if constexpr (delay > 0)
+		_delay_ms(delay);
 }
 
+template <auto delay = 30>
 void animation_loop(const rgb value) noexcept {
 	transformation<led_count>::rotate(reinterpret_cast<rgb *>(data.data()), value);
-	push_leds();
+	push_leds<delay>();
 }
 
 constexpr void forwarding_light_strips() {
@@ -77,8 +82,68 @@ void send(serial_device &serial, const char *str) {
 		serial.send(str[i]);
 }
 
+enum class command {
+	push,
+	info,
+	init,
+	clear,
+	undef,
+};
+
+constexpr auto to_string(const command value) noexcept -> const char * {
+	switch (value) {
+		case command::push: return "LF_PUSH";
+		case command::info: return "LF_INFO";
+		case command::init: return "LF_INIT";
+		case command::clear: return "LF_CLEAR";
+		case command::undef: return nullptr;
+	};
+
+	return nullptr;
+}
+
+constexpr auto to_command(char *buffer) noexcept {
+	constexpr auto command_prefix = "LF_";
+	if (strncmp(buffer, command_prefix, 3))
+		return command::undef;
+
+	buffer += 3;
+
+	if (!strncmp(buffer, "PUSH", 4))
+		return command::push;
+
+	if (!strncmp(buffer, "INFO", 4))
+		return command::info;
+
+	if (!strncmp(buffer, "INIT", 4))
+		return command::init;
+
+	if (!strncmp(buffer, "CLEAR", 5))
+		return command::clear;
+
+	return command::undef;
+}
+
+template <typename buffer_type>
+bool read_line(serial_device &serial, buffer_type &&buffer) {
+	for (auto i = 0u; i < sizeof(buffer); ++i) {
+		buffer[i] = serial.recv_8u();
+
+		if (buffer[i] == '\0')
+			return true;
+	}
+
+	return false;
+}
+
 int main() {
 	initialize();
+
+	sequential_animation<animation_loop<0>, to_grb888,
+		repeat<plain_color_animation<0x00, 0x00, 0xff>, led_count / 1>,
+		repeat<plain_color_animation<0xff, 0x20, 0x00>, led_count / 2>,
+		repeat<plain_color_animation<0x00, 0x00, 0xff>, led_count / 1>,
+		repeat<plain_color_animation<0x00, 0xff, 0x20>, led_count / 2>>();
 
 	UBRR0H = 0x00;
 	UBRR0L = 0x02;
@@ -87,29 +152,32 @@ int main() {
 	uart serial;
 	u16 error_count{};
 
-	push_leds();
-
 	for (;;) {
-		if (!expect_sequence(serial, "LED"))
+		constexpr auto cmd_buffer_size = 16;
+		char buffer[cmd_buffer_size]{};
+		if (!read_line(serial, buffer))
 			continue;
 
-		const auto expected_led_count = serial.recv_16u();
-		const auto expected_sum = serial.recv_16u();
+		const auto type = to_command(buffer);
 
-		u16 local_sum{};
+		if (command::push == type) {
+			const auto expected_led_count = serial.recv_16u();
+			const auto expected_sum = serial.recv_16u();
+			u16 local_sum{};
 
-		for (auto i = 0u; i < expected_led_count; ++i) {
-			data[i] = serial.recv_8u();
-			local_sum += data[i];
+			for (auto i = 0u; i < expected_led_count; ++i) {
+				data[i] = serial.recv_8u();
+				local_sum += data[i];
+			}
+
+			if (expected_sum == local_sum)
+				push_leds<0>();
+			else
+				error_count++;
+
+			send(serial, "RDY");
+			serial.send('\0');
 		}
-
-		if (expected_sum != local_sum) {
-			error_count++;
-		}
-
-		push_leds();
-
-		send(serial, "RDY");
 	}
 
 	return 0;
