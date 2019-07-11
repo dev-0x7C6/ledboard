@@ -78,6 +78,16 @@ public:
 class uart {
 
 public:
+	template <typename value_type = u8>
+	static value_type recv() noexcept {
+		value_type value;
+
+		for (auto i = 0u; i < sizeof(value); ++i)
+			reinterpret_cast<u8 *>(&value)[i] = recv_8u();
+
+		return value;
+	}
+
 	static u16 recv_16u() noexcept {
 		u16 ret{};
 		ret |= recv_8u() << 8;

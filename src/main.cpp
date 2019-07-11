@@ -16,13 +16,14 @@
 
 constexpr auto led_count = 100;
 
-color_array<led_count * 3> data{};
+static color_array<led_count * 3> data{};
+static u16 error_count{};
 
 void initialize() {
 	port<regs::ddr_d, 5>::hi();
 }
 
-template <auto delay>
+template <auto delay = 0>
 void push_leds() {
 	port<regs::portd, 5> ws_port;
 	pwm ws_pwm(ws_port);
@@ -65,7 +66,7 @@ template <typename T>
 concept bool serial_device = requires(T a) {
 	{ a.send({}) }
 	->void;
-	{ a.recv_8u() }
+	{ a.recv() }
 	->u8;
 };
 
@@ -82,46 +83,49 @@ void send(serial_device &serial, const char *str) {
 		serial.send(str[i]);
 }
 
-enum class command {
-	push,
-	info,
-	init,
-	clear,
-	undef,
+namespace proto {
+
+enum class command : u8 {
+	undef = 0x00,
+	init = 'i',
+	done = 'd',
+	push = 'p',
+	info = 'n',
+	sync = 's',
+	clear = 'c',
 };
 
-constexpr auto to_string(const command value) noexcept -> const char * {
-	switch (value) {
-		case command::push: return "LF_PUSH";
-		case command::info: return "LF_INFO";
-		case command::init: return "LF_INIT";
-		case command::clear: return "LF_CLEAR";
-		case command::undef: return nullptr;
-	};
+enum class response {
+	none,
+	ready,
+	synced,
+};
 
-	return nullptr;
+struct lf_push_params {
+	u16 led_count;
+	u16 sum;
+};
+
+struct lf_version {
+	u8 version{1};
+};
+
+struct lf_info {
+	char name[32];
+	char conf[64];
+};
+
 }
+
+static_assert(sizeof(proto::lf_push_params) == 4);
 
 constexpr auto to_command(char *buffer) noexcept {
 	constexpr auto command_prefix = "LF_";
+
 	if (strncmp(buffer, command_prefix, 3))
-		return command::undef;
+		return proto::command::undef;
 
-	buffer += 3;
-
-	if (!strncmp(buffer, "PUSH", 4))
-		return command::push;
-
-	if (!strncmp(buffer, "INFO", 4))
-		return command::info;
-
-	if (!strncmp(buffer, "INIT", 4))
-		return command::init;
-
-	if (!strncmp(buffer, "CLEAR", 5))
-		return command::clear;
-
-	return command::undef;
+	return static_cast<proto::command>(buffer[3]);
 }
 
 template <typename buffer_type>
@@ -134,6 +138,84 @@ bool read_line(serial_device &serial, buffer_type &&buffer) {
 	}
 
 	return false;
+}
+
+proto::response on_command_push(uart &serial) {
+	const auto params = serial.recv<proto::lf_push_params>();
+	u16 local_sum{};
+
+	for (auto i = 0u; i < params.led_count; ++i) {
+		data[i] = serial.recv_8u();
+		local_sum += data[i];
+	}
+
+	if (params.sum == local_sum)
+		push_leds<0>();
+	else
+		error_count++;
+
+	return proto::response::ready;
+}
+
+proto::response on_command_init(uart &) {
+	return proto::response::ready;
+}
+
+proto::response on_command_done(uart &) {
+	return proto::response::ready;
+}
+
+proto::response on_command_info(uart &) {
+	return proto::response::ready;
+}
+
+proto::response on_command_sync(uart &) {
+	return proto::response::synced;
+}
+
+proto::response on_command_clear(uart &) {
+	return proto::response::ready;
+}
+
+void process_response(uart &serial, const proto::response rep) {
+	switch (rep) {
+		case proto::response::none:
+			return;
+		case proto::response::ready:
+			serial.send('R');
+			serial.send('D');
+			serial.send('Y');
+			serial.send('\0');
+			return;
+		case proto::response::synced:
+			serial.send('S');
+			serial.send('Y');
+			serial.send('N');
+			serial.send('C');
+			serial.send('\0');
+			return;
+	}
+}
+
+auto process_command(uart &serial, const proto::command cmd) {
+	switch (cmd) {
+		case proto::command::push: return on_command_push(serial);
+		case proto::command::sync: return on_command_sync(serial);
+		case proto::command::info: return on_command_info(serial);
+		case proto::command::init: return on_command_init(serial);
+		case proto::command::clear: return on_command_clear(serial);
+		case proto::command::done: return on_command_done(serial);
+		case proto::command::undef: return proto::response::none;
+	}
+
+	return proto::response::none;
+}
+
+template <typename buffer_type>
+void process(uart &serial, buffer_type &&buffer) {
+	const auto cmd = to_command(buffer);
+	const auto rep = process_command(serial, cmd);
+	process_response(serial, rep);
 }
 
 int main() {
@@ -150,34 +232,14 @@ int main() {
 	UCSR0B = (1 << RXEN0) | (1 << TXEN0);
 
 	uart serial;
-	u16 error_count{};
 
 	for (;;) {
 		constexpr auto cmd_buffer_size = 16;
-		char buffer[cmd_buffer_size]{};
+		char buffer[cmd_buffer_size];
 		if (!read_line(serial, buffer))
 			continue;
 
-		const auto type = to_command(buffer);
-
-		if (command::push == type) {
-			const auto expected_led_count = serial.recv_16u();
-			const auto expected_sum = serial.recv_16u();
-			u16 local_sum{};
-
-			for (auto i = 0u; i < expected_led_count; ++i) {
-				data[i] = serial.recv_8u();
-				local_sum += data[i];
-			}
-
-			if (expected_sum == local_sum)
-				push_leds<0>();
-			else
-				error_count++;
-
-			send(serial, "RDY");
-			serial.send('\0');
-		}
+		process(serial, buffer);
 	}
 
 	return 0;
