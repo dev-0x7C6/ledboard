@@ -19,6 +19,9 @@ constexpr auto led_count = 100;
 static color_array<led_count * 3> data{};
 static u16 error_count{};
 
+constexpr static char rdy_response[4] = {'R', 'D', 'Y', '\0'};
+constexpr static char sync_response[5] = {'S', 'Y', 'N', 'C', '\0'};
+
 void initialize() {
 	port<regs::ddr_d, 5>::hi();
 }
@@ -64,7 +67,7 @@ u8 uart_recv() {
 
 template <typename T>
 concept bool serial_device = requires(T a) {
-	{ a.send({}) }
+	{ a.send_8u({}) }
 	->void;
 	{ a.recv() }
 	->u8;
@@ -87,12 +90,12 @@ namespace proto {
 
 enum class command : u8 {
 	undef = 0x00,
-	init = 'i',
-	done = 'd',
-	push = 'p',
-	info = 'n',
-	sync = 's',
-	clear = 'c',
+	init,
+	sync,
+	info,
+	push,
+	clear,
+	done,
 };
 
 enum class response {
@@ -110,11 +113,36 @@ struct lf_version {
 	u8 version{1};
 };
 
-struct lf_info {
-	char name[32];
-	char conf[64];
+enum class position : u8 {
+	left,
+	top,
+	right,
+	bottom,
+	center
 };
 
+enum class order : u8 {
+	clockwise,
+	counter_clockwise,
+};
+
+struct lf_strip_direction {
+	u8 reserved : 4;
+	u8 ord : 1;
+	u8 pos : 3;
+	u16 count;
+};
+
+static_assert(sizeof(lf_strip_direction) == 3);
+
+struct lf_info {
+	u8 version{};
+	u8 sequences{};
+	char name[32]{};
+	lf_strip_direction directions[16]{};
+};
+
+static_assert(sizeof(lf_info) == 82);
 }
 
 static_assert(sizeof(proto::lf_push_params) == 4);
@@ -165,7 +193,8 @@ proto::response on_command_done(uart &) {
 	return proto::response::ready;
 }
 
-proto::response on_command_info(uart &) {
+proto::response on_command_info(uart &serial, const proto::lf_info &info) {
+	serial.send(info);
 	return proto::response::ready;
 }
 
@@ -182,26 +211,17 @@ void process_response(uart &serial, const proto::response rep) {
 		case proto::response::none:
 			return;
 		case proto::response::ready:
-			serial.send('R');
-			serial.send('D');
-			serial.send('Y');
-			serial.send('\0');
-			return;
+			return serial.send(rdy_response);
 		case proto::response::synced:
-			serial.send('S');
-			serial.send('Y');
-			serial.send('N');
-			serial.send('C');
-			serial.send('\0');
-			return;
+			return serial.send(sync_response);
 	}
 }
 
-auto process_command(uart &serial, const proto::command cmd) {
+auto process_command(uart &serial, const proto::command cmd, const proto::lf_info &info) {
 	switch (cmd) {
 		case proto::command::push: return on_command_push(serial);
 		case proto::command::sync: return on_command_sync(serial);
-		case proto::command::info: return on_command_info(serial);
+		case proto::command::info: return on_command_info(serial, info);
 		case proto::command::init: return on_command_init(serial);
 		case proto::command::clear: return on_command_clear(serial);
 		case proto::command::done: return on_command_done(serial);
@@ -212,14 +232,31 @@ auto process_command(uart &serial, const proto::command cmd) {
 }
 
 template <typename buffer_type>
-void process(uart &serial, buffer_type &&buffer) {
+void process(uart &serial, buffer_type &&buffer, const proto::lf_info &info) {
 	const auto cmd = to_command(buffer);
-	const auto rep = process_command(serial, cmd);
+	const auto rep = process_command(serial, cmd, info);
 	process_response(serial, rep);
+}
+
+constexpr auto make_direction(const proto::position pos, const u16 count, const proto::order ord = proto::order::clockwise) {
+	proto::lf_strip_direction direction{};
+	direction.ord = static_cast<u8>(ord);
+	direction.pos = static_cast<u8>(pos);
+	direction.count = count;
+	return direction;
 }
 
 int main() {
 	initialize();
+
+	proto::lf_info info{};
+	info.version = 1;
+	info.sequences = 4;
+	strcpy(info.name, "Samsung TV");
+	info.directions[0] = make_direction(proto::position::left, 18);
+	info.directions[1] = make_direction(proto::position::top, 36);
+	info.directions[2] = make_direction(proto::position::right, 18);
+	info.directions[3] = make_direction(proto::position::bottom, 36);
 
 	sequential_animation<animation_loop<0>, to_grb888,
 		repeat<plain_color_animation<0x00, 0x00, 0xff>, led_count / 1>,
@@ -239,7 +276,7 @@ int main() {
 		if (!read_line(serial, buffer))
 			continue;
 
-		process(serial, buffer);
+		process(serial, buffer, info);
 	}
 
 	return 0;

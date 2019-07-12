@@ -88,6 +88,12 @@ public:
 		return value;
 	}
 
+	template <typename value_type>
+	static void send(value_type &&value) {
+		for (auto i = 0u; i < sizeof(value); ++i)
+			send_8u(reinterpret_cast<const u8 *>(&value)[i]);
+	}
+
 	static u16 recv_16u() noexcept {
 		u16 ret{};
 		ret |= recv_8u() << 8;
@@ -100,7 +106,7 @@ public:
 		return UDR0;
 	}
 
-	static void send(const u8 value) noexcept {
+	static void send_8u(const u8 value) noexcept {
 		loop_until_bit_is_set(UCSR0A, UDRE0);
 		UDR0 = value;
 	}
