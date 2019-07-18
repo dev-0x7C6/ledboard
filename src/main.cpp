@@ -2,6 +2,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <avr/pgmspace.h>
+#include <avr/wdt.h>
 
 #include <animation/animation-runners.hpp>
 #include <animation/animation-modifiers.hpp>
@@ -58,6 +59,9 @@ constexpr auto make_configuration() noexcept {
 
 void initialize() {
 	port<regs::ddr_d, 5>::hi();
+	UBRR0H = 0x00;
+	UBRR0L = 0x02;
+	UCSR0B = (1 << RXEN0) | (1 << TXEN0);
 }
 
 template <auto delay = 0>
@@ -144,7 +148,7 @@ response on_command_push(uart &serial) {
 		for (auto i = 0u; i < params.led_count; ++i) {
 			for (auto channel = 0; channel < led_channel_count; ++channel)
 				local_sum += (data[index + channel] = serial.recv_8u());
-			index += 6;
+			index += led_channel_count * 2;
 		}
 	} else {
 		for (auto i = 0u; i < params.led_count * led_channel_count; ++i)
@@ -215,21 +219,17 @@ void process(uart &serial, buffer_type &&buffer) {
 
 int main() {
 	initialize();
-	push_leds();
-
-	UBRR0H = 0x00;
-	UBRR0L = 0x02;
-	UCSR0B = (1 << RXEN0) | (1 << TXEN0);
-
 	uart serial;
 
 	for (;;) {
+		wdt_enable(WDTO_15MS);
 		constexpr auto cmd_buffer_size = 16;
 		char buffer[cmd_buffer_size];
 		if (!read_line(serial, buffer))
 			continue;
 
 		process(serial, buffer);
+		wdt_disable();
 	}
 
 	return 0;
