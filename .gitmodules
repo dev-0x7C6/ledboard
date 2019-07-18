@@ -7,3 +7,6 @@
 [submodule "src/externals/common"]
 	path = src/externals/common
 	url = git@github.com:dev-0x7C6/common.git
+[submodule "src/externals/protocol"]
+	path = src/externals/protocol
+	url = git@github.com:dev-0x7C6/led-frame-protocol.git

@@ -78,6 +78,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 add_definitions("-DF_CPU=${MCU_SPEED}")
+add_definitions("-DWS_AGGRESIVE_TIMINGS")
 add_definitions("-fconcepts -fdevirtualize-speculatively -fdevirtualize-at-ltrans -std=c++2a")
 add_definitions("-fshort-enums")
 add_definitions("-Wall")

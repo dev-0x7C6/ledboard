@@ -31,7 +31,11 @@ private:
 
 constexpr auto get_ws_timings(ws_type value) noexcept -> ws_timing_container {
 	switch (value) {
+#ifndef WS_AGGRESIVE_TIMINGS
 		case ws_type::ws2812b: return {{900, 600}, {400, 900}, 10000};
+#else
+		case ws_type::ws2812b: return {{500, 100}, {100, 230}, 0};
+#endif
 		case ws_type::ws2812: return {{700, 350}, {600, 600}, 30000};
 	}
 

@@ -13,14 +13,48 @@
 #include <pwm.hpp>
 
 #include <string.h>
+#include <externals/protocol/protocol.hpp>
 
-constexpr auto led_count = 100;
+namespace {
+constexpr auto ledframe_left_led_count = 18;
+constexpr auto ledframe_top_led_count = 36;
+constexpr auto ledframe_right_led_count = ledframe_left_led_count;
+constexpr auto ledframe_bottom_led_count = ledframe_top_led_count;
 
-static color_array<led_count * 3> data{};
-static u16 error_count{};
+constexpr auto led_count = ledframe_left_led_count + ledframe_top_led_count + ledframe_right_led_count + ledframe_bottom_led_count;
+constexpr auto led_channel_count = 3;
 
-constexpr static char rdy_response[4] = {'R', 'D', 'Y', '\0'};
-constexpr static char sync_response[5] = {'S', 'Y', 'N', 'C', '\0'};
+color_array<led_count * led_channel_count> data{};
+u16 error_count{};
+
+constexpr char rdy_response[4] = {'R', 'D', 'Y', '\0'};
+constexpr char sync_response[5] = {'S', 'Y', 'N', 'C', '\0'};
+
+}
+
+using namespace ledframe::proto;
+
+constexpr auto make_configuration() noexcept {
+	command_info_params params;
+	params.version = 1;
+	params.sequences = 4;
+	strcpy(params.name, "Samsung TV");
+
+	auto make_direction = [](const position pos, const u16 count, const order ord = order::clockwise) constexpr noexcept {
+		strip_param param{};
+		param.ord = static_cast<u8>(ord);
+		param.pos = static_cast<u8>(pos);
+		param.count = count;
+		param.palette = static_cast<u8>(palette_category::grb888);
+		return param;
+	};
+
+	params.directions[0] = make_direction(position::left, ledframe_left_led_count);
+	params.directions[1] = make_direction(position::top, ledframe_top_led_count);
+	params.directions[2] = make_direction(position::right, ledframe_right_led_count);
+	params.directions[3] = make_direction(position::bottom, ledframe_bottom_led_count);
+	return params;
+}
 
 void initialize() {
 	port<regs::ddr_d, 5>::hi();
@@ -53,18 +87,6 @@ constexpr void forwarding_light_strips() {
 		repeat<plain_color_animation<0x00, 0xff, 0x20>, short_bar>>();
 }
 
-void uart_send(const u8 byte) {
-	while ((UCSR0A & (1 << UDRE0)) == 0)
-		;
-	UDR0 = byte;
-}
-
-u8 uart_recv() {
-	while ((UCSR0A & (1 << RXC0)) == 0)
-		;
-	return UDR0;
-}
-
 template <typename T>
 concept bool serial_device = requires(T a) {
 	{ a.send_8u({}) }
@@ -86,74 +108,13 @@ void send(serial_device &serial, const char *str) {
 		serial.send(str[i]);
 }
 
-namespace proto {
-
-enum class command : u8 {
-	undef = 0x00,
-	init,
-	sync,
-	info,
-	push,
-	clear,
-	done,
-};
-
-enum class response {
-	none,
-	ready,
-	synced,
-};
-
-struct lf_push_params {
-	u16 led_count;
-	u16 sum;
-};
-
-struct lf_version {
-	u8 version{1};
-};
-
-enum class position : u8 {
-	left,
-	top,
-	right,
-	bottom,
-	center
-};
-
-enum class order : u8 {
-	clockwise,
-	counter_clockwise,
-};
-
-struct lf_strip_direction {
-	u8 reserved : 4;
-	u8 ord : 1;
-	u8 pos : 3;
-	u16 count;
-};
-
-static_assert(sizeof(lf_strip_direction) == 3);
-
-struct lf_info {
-	u8 version{};
-	u8 sequences{};
-	char name[32]{};
-	lf_strip_direction directions[16]{};
-};
-
-static_assert(sizeof(lf_info) == 82);
-}
-
-static_assert(sizeof(proto::lf_push_params) == 4);
-
 constexpr auto to_command(char *buffer) noexcept {
 	constexpr auto command_prefix = "LF_";
 
 	if (strncmp(buffer, command_prefix, 3))
-		return proto::command::undef;
+		return command::undef;
 
-	return static_cast<proto::command>(buffer[3]);
+	return static_cast<command>(buffer[3]);
 }
 
 template <typename buffer_type>
@@ -168,101 +129,93 @@ bool read_line(serial_device &serial, buffer_type &&buffer) {
 	return false;
 }
 
-proto::response on_command_push(uart &serial) {
-	const auto params = serial.recv<proto::lf_push_params>();
+response on_command_push(uart &serial) {
+	const auto params = serial.recv<command_push_params>();
 	u16 local_sum{};
 
-	for (auto i = 0u; i < params.led_count; ++i) {
-		data[i] = serial.recv_8u();
-		local_sum += data[i];
+	if (params.led_count > sizeof(data))
+		return response::none;
+
+	const auto is_interlaced = params.flags.test(push_flags::id::interlaced);
+
+	if (is_interlaced) {
+		const auto is_even = params.flags.test(push_flags::id::interlaced_frame_even);
+		auto index = (is_even ? 0u : led_channel_count);
+		for (auto i = 0u; i < params.led_count; ++i) {
+			for (auto channel = 0; channel < led_channel_count; ++channel)
+				local_sum += (data[index + channel] = serial.recv_8u());
+			index += 6;
+		}
+	} else {
+		for (auto i = 0u; i < params.led_count * led_channel_count; ++i)
+			local_sum += (data[i] = serial.recv_8u());
 	}
 
 	if (params.sum == local_sum)
-		push_leds<0>();
+		push_leds();
 	else
 		error_count++;
 
-	return proto::response::ready;
+	return response::ready;
 }
 
-proto::response on_command_init(uart &) {
-	return proto::response::ready;
+response on_command_init(uart &) {
+	return response::ready;
 }
 
-proto::response on_command_done(uart &) {
-	return proto::response::ready;
+response on_command_done(uart &) {
+	return response::ready;
 }
 
-proto::response on_command_info(uart &serial, const proto::lf_info &info) {
-	serial.send(info);
-	return proto::response::ready;
+response on_command_info(uart &serial) {
+	auto cfg = make_configuration();
+	serial.send(cfg);
+	return response::ready;
 }
 
-proto::response on_command_sync(uart &) {
-	return proto::response::synced;
+response on_command_sync(uart &) {
+	return response::synced;
 }
 
-proto::response on_command_clear(uart &) {
-	return proto::response::ready;
+response on_command_clear(uart &) {
+	return response::ready;
 }
 
-void process_response(uart &serial, const proto::response rep) {
+void process_response(uart &serial, const response rep) {
 	switch (rep) {
-		case proto::response::none:
+		case response::none:
 			return;
-		case proto::response::ready:
+		case response::ready:
 			return serial.send(rdy_response);
-		case proto::response::synced:
+		case response::synced:
 			return serial.send(sync_response);
 	}
 }
 
-auto process_command(uart &serial, const proto::command cmd, const proto::lf_info &info) {
+auto process_command(uart &serial, const command cmd) {
 	switch (cmd) {
-		case proto::command::push: return on_command_push(serial);
-		case proto::command::sync: return on_command_sync(serial);
-		case proto::command::info: return on_command_info(serial, info);
-		case proto::command::init: return on_command_init(serial);
-		case proto::command::clear: return on_command_clear(serial);
-		case proto::command::done: return on_command_done(serial);
-		case proto::command::undef: return proto::response::none;
+		case command::push: return on_command_push(serial);
+		case command::sync: return on_command_sync(serial);
+		case command::info: return on_command_info(serial);
+		case command::init: return on_command_init(serial);
+		case command::clear: return on_command_clear(serial);
+		case command::done: return on_command_done(serial);
+		case command::undef: return response::none;
 	}
 
-	return proto::response::none;
+	return response::none;
 }
 
 template <typename buffer_type>
-void process(uart &serial, buffer_type &&buffer, const proto::lf_info &info) {
+void process(uart &serial, buffer_type &&buffer) {
 	const auto cmd = to_command(buffer);
-	const auto rep = process_command(serial, cmd, info);
+	const auto rep = process_command(serial, cmd);
 	process_response(serial, rep);
-}
-
-constexpr auto make_direction(const proto::position pos, const u16 count, const proto::order ord = proto::order::clockwise) {
-	proto::lf_strip_direction direction{};
-	direction.ord = static_cast<u8>(ord);
-	direction.pos = static_cast<u8>(pos);
-	direction.count = count;
-	return direction;
 }
 
 int main() {
 	initialize();
-
-	proto::lf_info info{};
-	info.version = 1;
-	info.sequences = 4;
-	strcpy(info.name, "Samsung TV");
-	info.directions[0] = make_direction(proto::position::left, 18);
-	info.directions[1] = make_direction(proto::position::top, 36);
-	info.directions[2] = make_direction(proto::position::right, 18);
-	info.directions[3] = make_direction(proto::position::bottom, 36);
-
-	sequential_animation<animation_loop<0>, to_grb888,
-		repeat<plain_color_animation<0x00, 0x00, 0xff>, led_count / 1>,
-		repeat<plain_color_animation<0xff, 0x20, 0x00>, led_count / 2>,
-		repeat<plain_color_animation<0x00, 0x00, 0xff>, led_count / 1>,
-		repeat<plain_color_animation<0x00, 0xff, 0x20>, led_count / 2>>();
+	push_leds();
 
 	UBRR0H = 0x00;
 	UBRR0L = 0x02;
@@ -276,7 +229,7 @@ int main() {
 		if (!read_line(serial, buffer))
 			continue;
 
-		process(serial, buffer, info);
+		process(serial, buffer);
 	}
 
 	return 0;

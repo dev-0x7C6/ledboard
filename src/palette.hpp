@@ -6,10 +6,10 @@
 enum class palette_category {
 	rgb888,
 	rbg888,
-	bgr888,
-	brg888,
 	grb888,
 	gbr888,
+	bgr888,
+	brg888,
 };
 
 // clang-format off
