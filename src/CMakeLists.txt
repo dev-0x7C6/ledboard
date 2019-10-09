@@ -6,9 +6,7 @@ include_directories(
     hal
 )
 
-add_avr_executable(
-   wsled
-   main.cpp
+set(hal-sources
    hal/port.hpp
    hal/pwm.hpp
    externals/common/types.hpp
@@ -23,6 +21,23 @@ add_avr_executable(
    animation/generators/plain-color-animation.hpp
 )
 
-target_link_libraries(
-   wsled-${AVR_MCU}.elf
+add_avr_executable(
+   ledframe
+   ledframe.cpp
+   ${hal-sources}
 )
+
+add_avr_executable(
+   ledboard
+   ledboard.cpp
+   ${hal-sources}
+)
+
+target_link_libraries(
+   ledframe-${AVR_MCU}.elf
+)
+
+target_link_libraries(
+   ledboard-${AVR_MCU}.elf
+)
+

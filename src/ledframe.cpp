@@ -59,9 +59,15 @@ constexpr auto make_configuration() noexcept {
 
 void initialize() {
 	port<regs::ddr_d, 5>::hi();
+	port<regs::ddr_b, 5>::hi();
+	port<regs::portb, 5>::lo();
+
+	UCSR0A = 0; //(1 << U2X0);
+	UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);
+	UCSR0B = (1 << RXEN0) | (1 << TXEN0);
+
 	UBRR0H = 0x00;
 	UBRR0L = 0x02;
-	UCSR0B = (1 << RXEN0) | (1 << TXEN0);
 }
 
 template <auto delay = 0>
@@ -218,18 +224,48 @@ void process(uart &serial, buffer_type &&buffer) {
 }
 
 int main() {
+	wdt_reset();
+	wdt_enable(WDTO_1S);
+
 	initialize();
+	port<regs::portb, 5>::hi();
+
 	uart serial;
 
+#ifdef BLUETOOTH_SUPPORT
+	serial.send("AT");
+	serial.recv<char>();
+	serial.recv<char>();
+
+	serial.send("AT+PIN4512");
+	serial.recv<char>();
+	serial.recv<char>();
+	serial.recv<char>();
+	serial.recv<char>();
+	serial.recv<char>();
+	serial.recv<char>();
+	serial.recv<char>();
+	serial.recv<char>();
+
+	serial.send("AT+NAME[TV] LedFrame");
+	serial.recv<char>();
+	serial.recv<char>();
+	serial.recv<char>();
+	serial.recv<char>();
+	serial.recv<char>();
+	serial.recv<char>();
+#endif
+
 	for (;;) {
-		wdt_enable(WDTO_15MS);
+		wdt_reset();
 		constexpr auto cmd_buffer_size = 16;
 		char buffer[cmd_buffer_size];
 		if (!read_line(serial, buffer))
 			continue;
 
+		port<regs::portb, 5>::hi();
 		process(serial, buffer);
-		wdt_disable();
+		port<regs::portb, 5>::lo();
 	}
 
 	return 0;

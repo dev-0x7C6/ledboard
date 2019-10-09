@@ -15,11 +15,14 @@ set(AVR_UPLOADTOOL_PORT usb)
 #set(AVR_UPLOADTOOL_OPTIONS "-b 115200")
 
 set(AVR_MCU atmega328p)
-set(AVR_H_FUSE 0xd9)
-set(AVR_L_FUSE 0xc3)
+#set(AVR_H_FUSE 0xD9)
+#set(AVR_L_FUSE 0xC3)
+set(AVR_H_FUSE 0xC9)
+set(AVR_L_FUSE 0xD7)
 
 include(generic-gcc-avr.cmake)
 
+# 22.1184 MHz
 set(MCU_SPEED "22118400UL")
 
 project(ledboard)
@@ -78,7 +81,6 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 add_definitions("-DF_CPU=${MCU_SPEED}")
-add_definitions("-DWS_AGGRESIVE_TIMINGS")
 add_definitions("-fconcepts -fdevirtualize-speculatively -fdevirtualize-at-ltrans -std=c++2a")
 add_definitions("-fshort-enums")
 add_definitions("-Wall")

@@ -94,6 +94,11 @@ public:
 			send_8u(reinterpret_cast<const u8 *>(&value)[i]);
 	}
 
+	static void send(const char *line) {
+		for (auto i = 0u; line[i] != '\0'; ++i)
+			send_8u(static_cast<u8>(line[i]));
+	}
+
 	static u16 recv_16u() noexcept {
 		u16 ret{};
 		ret |= recv_8u() << 8;

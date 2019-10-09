@@ -26,5 +26,7 @@ constexpr uint16_t extract_addr_from_expresion(const char *r) {
 namespace regs {
 using word_size = u16;
 constexpr word_size ddr_d = EXTRACT_ADDR(DDRD);
+constexpr word_size ddr_b = EXTRACT_ADDR(DDRB);
 constexpr word_size portd = EXTRACT_ADDR(PORTD);
+constexpr word_size portb = EXTRACT_ADDR(PORTB);
 }
