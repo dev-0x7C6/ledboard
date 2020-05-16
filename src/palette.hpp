@@ -1,7 +1,7 @@
 #pragma once
 
 #include <color.hpp>
-#include <etl/type_traits.h>
+#include <traits.hpp>
 
 enum class palette_category {
 	rgb888,
@@ -12,14 +12,11 @@ enum class palette_category {
 	brg888,
 };
 
-// clang-format off
-
-template<typename T>
-concept bool palette_compatible = requires(T a) {
-    { rgb({a}) } -> rgb; // convertable to rgb, for example from initializer_list
+template <typename T>
+concept palette_compatible = requires(T a) {
+	{ rgb({a}) }
+	->same_as<rgb>; // convertable to rgb, for example from initializer_list
 };
-
-// clang-format on
 
 template <palette_category category, palette_compatible type> // generate efficent signature for every value category, still universal reference :)
 constexpr auto convert_palette(type &&value) noexcept -> rgb {

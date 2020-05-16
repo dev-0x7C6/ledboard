@@ -2,6 +2,7 @@
 
 #include <color.hpp>
 #include <palette.hpp>
+#include <traits.hpp>
 
 enum class Infill {
 	RotateLeft,
@@ -9,13 +10,12 @@ enum class Infill {
 	Fill
 };
 
-// clang-format off
-
-template<typename type>
-concept bool animation_interface = requires(type object) {
-    { object.value() } -> rgb
-    { object.step() } -> void
-    { object.is_finished() } -> bool
+template <typename type>
+concept animation_interface = requires(type object) {
+	{ object.value() }
+	->same_as<rgb>;
+	{ object.step() }
+	->same_as<void>;
+	{ object.is_finished() }
+	->same_as<bool>;
 };
-
-// clang-format on

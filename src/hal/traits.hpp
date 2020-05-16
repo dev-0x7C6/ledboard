@@ -1,5 +1,15 @@
 #pragma once
 
+#include <etl/type_traits.h>
+
+namespace detail {
+template <class T, class U>
+concept SameHelper = etl::is_same<T, U>::value;
+}
+
+template <class T, class U>
+concept same_as = detail::SameHelper<T, U> &&detail::SameHelper<U, T>;
+
 template <typename... bit_types>
 constexpr auto bitcalc(bit_types &&... values) {
 	return (... | (1 << values)); // fold expression

@@ -2,43 +2,13 @@
 
 #include "port.hpp"
 
-enum class architecture {
-	avr,
-	arm,
-	undefined,
-};
-
-template <auto arch>
-concept bool compatible_with_arch() {
-#ifdef __AVR__
-	return architecture::avr == arch;
-#elif __arm__
-	return architecture::arm == arch;
-#else
-	return architecture::undefined == arch;
-#endif
-}
-
 template <auto cycles>
-requires compatible_with_arch<architecture::avr>() void nop_section() {
+constexpr void nop_section() {
 	asm volatile(
 		".rept %[cycles] \n\t"
 		"nop \n\t"
 		".endr \n\t" ::
 			[cycles] "I"(cycles));
-}
-
-template <auto cycles>
-requires compatible_with_arch<architecture::arm>() void nop_section() {
-	asm volatile(
-		".rept %[cycles] \n\t"
-		"nop \n\t"
-		".endr \n\t" ::
-			[cycles] "I"(cycles));
-}
-
-template <auto cycles>
-requires compatible_with_arch<architecture::undefined>() void __avr_generate_nop_section() {
 }
 
 template <auto addr, auto bit, port_access_strategy strategy, template <auto, auto, port_access_strategy> class port_type_template = port>

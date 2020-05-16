@@ -6,11 +6,11 @@ cmake_minimum_required(VERSION 3.9)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 set(AVR_UPLOADTOOL avrdude)
-set(AVR_PROGRAMMER usbasp)
+#set(AVR_PROGRAMMER usbasp)
 set(AVR_UPLOADTOOL_PORT usb)
-#set(AVR_UPLOADTOOL_OPTIONS "-b 57600")
-#set(AVR_PROGRAMMER arduino)
-#set(AVR_UPLOADTOOL_PORT /dev/ttyUSB2)
+set(AVR_UPLOADTOOL_OPTIONS "-b 115200")
+set(AVR_PROGRAMMER arduino)
+set(AVR_UPLOADTOOL_PORT /dev/ttyUSB0)
 
 #set(AVR_UPLOADTOOL_OPTIONS "-b 115200")
 
@@ -22,8 +22,11 @@ set(AVR_L_FUSE 0xD7)
 
 include(generic-gcc-avr.cmake)
 
+
+set(MCU_SPEED "16000000UL")
+
 # 22.1184 MHz
-set(MCU_SPEED "22118400UL")
+#set(MCU_SPEED "22118400UL")
 
 project(ledboard)
 
@@ -84,7 +87,7 @@ add_definitions("-DF_CPU=${MCU_SPEED}")
 add_definitions("-fconcepts -fdevirtualize-speculatively -fdevirtualize-at-ltrans -std=c++2a")
 add_definitions("-fshort-enums")
 add_definitions("-Wall")
-add_definitions("-Werror")
+add_definitions("-Werror -Wno-error=volatile")
 add_definitions("-fno-exceptions")
 add_definitions("-pedantic")
 add_definitions("-pedantic-errors")

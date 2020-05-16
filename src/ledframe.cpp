@@ -12,6 +12,7 @@
 #include <hal/regs.hpp>
 #include <hal/ws2812b.hpp>
 #include <pwm.hpp>
+#include <traits.hpp>
 
 #include <string.h>
 #include <externals/protocol/protocol.hpp>
@@ -98,14 +99,14 @@ constexpr void forwarding_light_strips() {
 }
 
 template <typename T>
-concept bool serial_device = requires(T a) {
+concept serial_device = requires(T a) {
 	{ a.send_8u({}) }
-	->void;
+	->same_as<void>;
 	{ a.recv() }
-	->u8;
+	->same_as<u8>;
 };
 
-bool expect_sequence(serial_device &serial, const char *str) {
+bool expect_sequence(serial_device auto &serial, const char *str) {
 	for (auto i = 0; str[i] != '\0'; ++i)
 		if (str[i] != serial.recv_8u())
 			return false;
@@ -113,7 +114,7 @@ bool expect_sequence(serial_device &serial, const char *str) {
 	return true;
 }
 
-void send(serial_device &serial, const char *str) {
+void send(serial_device auto &serial, const char *str) {
 	for (auto i = 0; str[i] != '\0'; ++i)
 		serial.send(str[i]);
 }
@@ -128,7 +129,7 @@ constexpr auto to_command(char *buffer) noexcept {
 }
 
 template <typename buffer_type>
-bool read_line(serial_device &serial, buffer_type &&buffer) {
+bool read_line(serial_device auto &serial, buffer_type &&buffer) {
 	for (auto i = 0u; i < sizeof(buffer); ++i) {
 		buffer[i] = serial.recv_8u();
 
