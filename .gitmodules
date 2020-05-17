@@ -3,10 +3,10 @@
 	url = https://github.com/ETLCPP/etl.git
 [submodule "formatter"]
 	path = formatter
-	url = git@github.com:dev-0x7C6/clang-formatter-integration.git
+	url = https://github.com/dev-0x7C6/clang-formatter-integration.git
 [submodule "src/externals/common"]
 	path = src/externals/common
-	url = git@github.com:dev-0x7C6/common.git
+	url = https://github.com/dev-0x7C6/common.git
 [submodule "src/externals/protocol"]
 	path = src/externals/protocol
-	url = git@github.com:dev-0x7C6/led-frame-protocol.git
+	url = https://github.com/dev-0x7C6/led-frame-protocol.git
